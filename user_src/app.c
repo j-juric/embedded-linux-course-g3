@@ -73,6 +73,8 @@ void *producer(void *param)
 
             if (ret_val < 0){
                 printf("Error sending message.\n");
+                sem_post(&semFinish);
+                return -1;
             }
 
             close(file);
@@ -119,6 +121,7 @@ void *consumer(void *param)
             if (file <0)
             {
                 printf("/dev/encrypter device isn't open.\n");
+                sem_post(&semFinish);
                 return -1;
             }
 
