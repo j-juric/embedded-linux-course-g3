@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-#if !defined(NDEBUG)
+#if !defined(DEBUG)
     #define DEBUG_MODE 0
     #define RELEASE_MODE 1
     #define MESSAGE_DELAY 500000 //500 ms = 500.000 us

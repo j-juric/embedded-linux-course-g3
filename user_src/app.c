@@ -11,10 +11,9 @@ void generate_random_message(char *str, size_t size)
     for (int i = 0, x; i < size; i++)
     {
         x = rand() % len;
-        str[x] = alphanum[x];
+        str[i] = alphanum[x];
     }
     str[size] = '\0';
-
     return;
 }
 
@@ -43,14 +42,12 @@ void *producer(void *param)
     // Run producer
     while (1)
     {
-        //Exit condition for debug/test mode
-        if (DEBUG_MODE == 1)
+        //Exit condition
+        if (sem_trywait(&semFinish) == 0)
         {
-            if (sem_trywait(&semFinish) == 0)
-            {
-                break;
-            }
+            break;
         }
+        
 
         // Generate message
         generate_message(message);
@@ -65,7 +62,7 @@ void *producer(void *param)
             {
                 printf("/dev/encrypter device isn't open.\n");
                 sem_post(&semFinish);
-                return -1;
+                break;
             }
 
             // Send message to kernel space
@@ -74,7 +71,7 @@ void *producer(void *param)
             if (ret_val < 0){
                 printf("Error sending message.\n");
                 sem_post(&semFinish);
-                return -1;
+                break;
             }
 
             close(file);
@@ -105,13 +102,11 @@ void *consumer(void *param)
 
     while (1)
     {
-        //Exit condition for debug/test mode
-        if (DEBUG_MODE == 1)
+        //Exit condition
+
+        if (sem_trywait(&semFinish) == 0)
         {
-            if (sem_trywait(&semFinish) == 0)
-            {
-                break;
-            }
+            break;
         }
 
         if (sem_trywait(&semFull) == 0){
@@ -122,7 +117,7 @@ void *consumer(void *param)
             {
                 printf("/dev/encrypter device isn't open.\n");
                 sem_post(&semFinish);
-                return -1;
+                break;
             }
 
             // Send message to kernel space
@@ -131,7 +126,7 @@ void *consumer(void *param)
             if (ret_val < 0){
                 printf("Error receiving message.\n");
                 sem_post(&semFinish);
-                return -1;
+                break;
             }
 
             close(file);
@@ -149,6 +144,13 @@ int main(int argc, char **argv)
 {
     pthread_t tProducer;
     pthread_t tConsumer;
+
+    if (DEBUG_MODE == 1){
+        printf("DEBUG MODE.\n");
+    }
+    else{
+        printf("RELEASE MODE.\n");
+    }
 
     // Init sempahores
     sem_init(&semEmpty, 0, 1);
