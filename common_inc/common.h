@@ -6,6 +6,9 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
 
 #if !defined(NDEBUG)
     #define DEBUG_MODE 0

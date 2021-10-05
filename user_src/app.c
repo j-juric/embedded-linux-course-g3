@@ -36,6 +36,11 @@ void *producer(void *param)
 {
     char message[MESSAGE_LENGTH];
     int count = 10;
+    int file;
+    int ret_val;
+    
+
+    // Run producer
     while (1)
     {
         //Exit condition for debug/test mode
@@ -54,8 +59,23 @@ void *producer(void *param)
 
         if (sem_trywait(&semEmpty) == 0)
         {
+            file = open("/dev/encrypter", O_RDWR);
 
-            //TODO: send message to driver
+            if (file <0)
+            {
+                printf("/dev/encrypter device isn't open.\n");
+                sem_post(&semFinish);
+                return -1;
+            }
+
+            // Send message to kernel space
+            ret_val = write(file, message, MESSAGE_LENGTH);
+
+            if (ret_val < 0){
+                printf("Error sending message.\n");
+            }
+
+            close(file);
 
             sem_post(&semFull);
         }
@@ -79,6 +99,7 @@ void *producer(void *param)
 void *consumer(void *param)
 {
     char message[MESSAGE_LENGTH];
+    int file, ret_val;
 
     while (1)
     {
@@ -93,7 +114,24 @@ void *consumer(void *param)
 
         if (sem_trywait(&semFull) == 0){
 
-            //TODO: receive message from driver
+            file = open("/dev/encrypter", O_RDWR);
+
+            if (file <0)
+            {
+                printf("/dev/encrypter device isn't open.\n");
+                return -1;
+            }
+
+            // Send message to kernel space
+            ret_val = read(file, message, MESSAGE_LENGTH);
+
+            if (ret_val < 0){
+                printf("Error receiving message.\n");
+                sem_post(&semFinish);
+                return -1;
+            }
+
+            close(file);
 
             printf("Consumer: %s\n", message);
             fflush(stdout);
