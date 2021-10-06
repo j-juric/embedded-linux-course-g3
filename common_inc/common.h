@@ -22,4 +22,4 @@
     #define MESSAGE_LENGTH 11
 #endif
 
-#endif
+#endif //__COMON__H__

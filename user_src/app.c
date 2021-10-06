@@ -3,6 +3,9 @@
 
 static sem_t semEmpty, semFull, semFinish;
 
+
+#if DEBUG_MODE == 0
+
 void generate_random_message(char *str, size_t size)
 {
     const char alphanum[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -17,16 +20,15 @@ void generate_random_message(char *str, size_t size)
     return;
 }
 
+#endif // DEBUG_MODE == 0
+
 void generate_message(char *message)
 {
-    if (DEBUG_MODE == 1)
-    {
+    #if DEBUG_MODE == 1
         strncpy(message, "0000000001", MESSAGE_LENGTH);
-    }
-    else
-    {
+    #else
         generate_random_message(message, MESSAGE_LENGTH-1);
-    }
+    #endif
 
     return;
 }
@@ -47,11 +49,10 @@ void *producer(void *param)
         {
             break;
         }
-        
 
         // Generate message
         generate_message(message);
-        printf("Producer: %s\n", message);
+        printf("[Producer]: %s\n", message);
         fflush(stdout);
 
         if (sem_trywait(&semEmpty) == 0)
@@ -83,14 +84,11 @@ void *producer(void *param)
         usleep(MESSAGE_DELAY);
 
         //Countdown for debug/test mode
-        if (DEBUG_MODE == 1)
+        count--;
+        if (count == 0)
         {
-            count--;
-            if (count == 0)
-            {
-                sem_post(&semFinish);
-                sem_post(&semFinish);
-            }
+            sem_post(&semFinish);
+            sem_post(&semFinish);
         }
     }
 }
@@ -144,13 +142,6 @@ int main(int argc, char **argv)
 {
     pthread_t tProducer;
     pthread_t tConsumer;
-
-    if (DEBUG_MODE == 1){
-        printf("DEBUG MODE.\n");
-    }
-    else{
-        printf("RELEASE MODE.\n");
-    }
 
     // Init sempahores
     sem_init(&semEmpty, 0, 1);
